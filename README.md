@@ -38,6 +38,20 @@ The goal of the project is to design an application to predict the performance r
   2. Go to http://0.0.0.0:3001/
   3. To follow the Data cleaning,preprocessing, and analysis, use the jupyter notebook: Udacity_FinalProject.ipynb
   
+### Usage
+ * Select charter school of interest from the drop downmenu, then click the submit button
+ ![](images/home.jpg)
+ 
+ 
+ * Visualizations of trend and forecast in each learning standard
+ ![](images/not_meeting.jpg)
+ ![](images/partially_meeting.jpg)
+ ![](images/meeting.jpg)
+ 
+ ### License
+ MIT License
+ 
+ Copyright (c) [2021] [Olabisi Balogun]
 
 
 
