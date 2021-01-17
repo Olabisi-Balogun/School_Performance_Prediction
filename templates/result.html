@@ -1,0 +1,55 @@
+{% extends "index.html" %}
+{% block content %}
+<div>
+	<h3 style="text-align: center">{{ query }}</h3>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-10">
+			<div class="chart" id="linegraph">
+				<script type="text/javascript">
+					var graph = {{plot1 | safe}};
+					Plotly.plot('linegraph',graph,{});
+				</script>
+				
+			</div>
+			
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-10">
+				<div class="chart" id="linegraph2">
+					<script type="text/javascript">
+						var graph2 = {{plot2 | safe}};
+						Plotly.plot('linegraph2',graph2,{});
+				</script>
+				
+			</div>
+			
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-10">
+				<div class="chart" id="linegraph3">
+					<script type="text/javascript">
+						var graph3 = {{plot3 | safe}};
+						Plotly.plot('linegraph3',graph3,{});
+				</script>
+				
+			</div>
+			
+		</div>
+	</div>
+
+	
+</div>
+    
+	</div>
+{% endblock %}
+
+
+
