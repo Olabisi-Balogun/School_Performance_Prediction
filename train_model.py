@@ -70,36 +70,48 @@ def train_valid_split(df):
     return train_df, valid_df
 
 #function builds the model
+#function builds the model
 def build_model(train):
     '''
     INPUT: (pandas dataframe) train dataframe
     OUTPUT: model_fit
     TASK: build forecast model for each school
     '''
-    #data = np.log(train).diff().dropna()
-    #model = VAR(data)
-    model = VAR(endog=train)
-    model_fit = model.fit(1)
+    train_diff = train.diff().dropna()
+    #model = VAR(train)
+    model = VAR(train_diff[['Not_Meeting_Pct','Partially_Meeting_Pct','Meeting_Pct']])
+    model_fit = model.fit(2)
     
     return model_fit
 
 #function makes prediction using the model
-def predict(validation, model):
+def predict(train, validation, model):
     '''
     INPUT: (pandas dataframe) validation set
            (timeseries model) model
     OUTPUT: prediction
     TASK: use model to make prediction
     '''
-    prediction = model.forecast(model.y, steps=len(validation))
+    train_diff = train.diff().dropna()
+    lag_order = model.k_ar
+    forecast_input = train_diff.values[-lag_order:]
+    #prediction = model.forecast(model.y, steps=len(validation))
+    prediction = model.forecast(forecast_input, steps=len(validation))
     
     #covert prediction to dataframe
-    pred = pd.DataFrame(index = range(0,len(prediction)),columns=[cols])
+    pred = pd.DataFrame(prediction,index = validation.index,columns=cols+'_1d')
+    #pred.columns = ['Not_Meeting_Pct_Forecast','Partially_Meeting_Pct_Forecast','Meeting_Pct_Forecast']
     
-    for i in range(0,3):
-        for j in range(0, len(prediction)):
-            pred.iloc[j][i] = prediction[j][i]
+    #forecast_orig = pred.copy()
+    for col in cols:
+        pred[str(col)+'_forecast'] = train[col].iloc[-1] + pred[str(col)+'_1d']
+    
+    pred.loc[:,['Not_Meeting_Pct_forecast','Partially_Meeting_Pct_forecast','Meeting_Pct_forecast']]
+    pred = pred[['Not_Meeting_Pct_forecast','Partially_Meeting_Pct_forecast','Meeting_Pct_forecast']]
+   
+
             
+    #return forecast_orig
     return pred
 
 #This function evaluates the model
@@ -107,13 +119,13 @@ def evaluate_model(pred, valid):
     '''
     INPUT: (pandas dataframe) prediction by model
             validation dataframe
-    OUTPUT: root mean squared score for the three target variables
+    OUTPUT: root mean squared error(rmse) for the three target variables, mean absolute error(mae)
     TASK: evaluate the performance of the model
     '''
-    for index,i in enumerate(valid.columns):
-        print(i)
-        print('rmse:{}'.format(math.sqrt(mean_squared_error(valid.iloc[:,index],pred.iloc[:,index])))) 
-            
+    mae = np.mean(np.abs(pred-valid))
+    rmse = np.sqrt(np.mean((pred-valid)**2))
+    
+    return ({'mae':mae,'rmse':rmse})
 
     #function builds models for individual schools and stores them in a dictionary
 def build_allmodels(sch_ids):
@@ -146,10 +158,22 @@ def evaluate_allmodels(models):
         sub_data = get_school_df(key)
         t_data, v_data = train_valid_split(sub_data)
         #get prediction for each school's model
-        preds = predict(v_data,models[key])
-        print("The rmse score for school with id {}".format(key))
-        evaluate_model(preds,v_data)
-        print(' ')
+        preds = predict(t_data,v_data,models[key])
+        print('Model Accuracy for school with id {}'.format(key))
+        print('Forecast Accuracy of: Not_Meeting_Pct')
+        accuracy = evaluate_model(preds['Not_Meeting_Pct_forecast'].values, v_data['Not_Meeting_Pct'])
+        for k,val in accuracy.items():
+            print(k,': ',round(val,4))
+            print(' ')    
+        print('Forecast Accuracy of: Partially_Meeting_Pct')
+        accurcay = evaluate_model(preds['Partially_Meeting_Pct_forecast'].values, v_data['Partially_Meeting_Pct'])
+        for k,val in accuracy.items():
+            print(k,': ',round(val,4))
+            print(' ')
+        print('Forecast Accuracy of: Meeting_Pct')
+        accuracy = evaluate_model(preds['Meeting_Pct_forecast'].values, v_data['Meeting_Pct'])
+        for k,val in accuracy.items():
+            print(k,': ',round(val,4))
 
 #store the models
 models = build_allmodels(school_ids)
