@@ -118,7 +118,7 @@ def result():
     cols = school_data.columns
     #fit model to data
     model = VAR(school_data)
-    model_fit = model.fit(1)
+    model_fit = model.fit(2)
     #forecast using model for next 3 years
     yhat = model_fit.forecast(model_fit.y, steps=4)
     #convert predictions from numpy array to dataframe
